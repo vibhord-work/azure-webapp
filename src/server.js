@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const path = require("path");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
@@ -27,6 +28,8 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/api/patients", patientsRouter);
+
+app.use(express.static(path.join(__dirname, "../public")));
 
 const PORT = process.env.PORT || 3000;
 
