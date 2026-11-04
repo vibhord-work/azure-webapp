@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Management Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <p class="eyebrow">AZURE WEB APP</p>
+        <h1>Patient Management Dashboard</h1>
+        <p class="subtitle">Patient records retrieved from Azure SQL Database</p>
+      </div>
+      <button id="refreshBtn" type="button">Refresh Records</button>
+    </header>
+
+    <section class="stats">
+      <div class="stat-card">
+        <span>Total Patients</span>
+        <strong id="patientCount">—</strong>
+      </div>
+      <div class="stat-card">
+        <span>Database</span>
+        <strong>Azure SQL</strong>
+      </div>
+      <div class="stat-card">
+        <span>Connection Status</span>
+        <strong id="connectionStatus">Checking...</strong>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <h2>Patient Records</h2>
+      <p id="message" role="status" aria-live="polite">Loading patients...</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Patient ID</th>
+              <th>Full Name</th>
+              <th>Department</th>
+            </tr>
+          </thead>
+          <tbody id="patientsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Azure App Service · Node.js · Azure SQL · Key Vault</footer>
+  </main>
+</body>
+</html>
