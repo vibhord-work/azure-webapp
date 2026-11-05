@@ -55,5 +55,8 @@ async function loadPatients() {
   }
 }
 
-refreshBtn.addEventListener("click", loadPatients);
-loadPatients();
+refreshBtn.addEventListener("click", () => {
+  void loadPatients();
+});
+
+void loadPatients();
