@@ -1,0 +1,101 @@
+name: Azure Web App CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  NODE_VERSION: '22'
+  AZURE_WEBAPP_NAME: app-webapp-dev-cin-1104
+
+jobs:
+  ci:
+    name: Build and Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check src/server.js
+          node --check src/config/database.js
+          node --check src/routes/patients.js
+          node --check public/app.js
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+  cd:
+    name: Deploy to Azure
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install production dependencies
+        run: npm ci --omit=dev
+
+      - name: Create deployment package
+        run: |
+          zip -r deploy.zip \
+            src/ \
+            public/ \
+            package.json \
+            package-lock.json \
+            node_modules/
+
+      - name: Login to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: deploy.zip
+
+      - name: Verify application health
+        run: |
+          URL="https://app-webapp-dev-cin-1104-gjaff4gkffabbca0.centralindia-01.azurewebsites.net/health"
+
+          for i in {1..12}; do
+            if curl --fail --silent --show-error "$URL"; then
+              echo "Application health check passed"
+              exit 0
+            fi
+
+            echo "Waiting for application..."
+            sleep 10
+          done
+
+          echo "Application health check failed"
+          exit 1
